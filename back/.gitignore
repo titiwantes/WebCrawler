@@ -1,0 +1,43 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.db
+
+# Environnements virtuels
+venv/
+env/
+.venv/
+.env/
+
+# Fichiers de configuration
+*.env
+*.local
+
+# Cache de Python
+*.egg-info/
+dist/
+build/
+
+
+# IDEs et éditeurs de code
+.vscode/
+.idea/
+*.swp
+
+# Pytest
+.cache/
+*.cover
+nosetests.xml
+coverage.xml
+*.cover
+*.log
+
+# Migrations
+db/migrations/versions/*.pyc
+db/migrations/versions/*.pyo
+
+# Autres fichiers temporaires
+*.tmp
+*.bak
