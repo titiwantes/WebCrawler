@@ -7,13 +7,18 @@ import core.exeptions.exception as exceptions
 class PageWordCrud:
     @classmethod
     def create(
-        cls, db: sa_orm.Session, page_word: page_word_mdl.PageWord
+        cls, db: sa_orm.Session, page_id: int, word_id: int
     ) -> page_word_mdl.PageWord:
-        try:
-            db.add(page_word)
-            db.commit()
-            db.refresh(page_word)
-            return page_word
-        except Exception:
-            db.rollback()
-            raise exceptions.InternalServerError()
+        existing_page_word = (
+            db.query(page_word_mdl.PageWord)
+            .filter(page_word_mdl.PageWord.page_id == page_id)
+            .filter(page_word_mdl.PageWord.word_id == word_id)
+            .first()
+        )
+        if existing_page_word:
+            return existing_page_word
+        page_word = page_word_mdl.PageWord(page_id=page_id, word_id=word_id)
+        db.add(page_word)
+        db.flush()
+        db.refresh(page_word)
+        return page_word

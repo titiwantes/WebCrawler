@@ -17,6 +17,8 @@ class PageCrud:
             return existing_page
 
         db.add(page)
+        db.flush()
+        db.refresh(page)
         return page
 
     @classmethod

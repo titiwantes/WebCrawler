@@ -38,8 +38,8 @@ class Crawler:
     def crawl(self, url):
         html = self.download_url(url)
         title, content = self.parse(html)
-        self.page_service.create_from_scrapping(url, title, content)
-        # print(f"title : {title} | length : {len(content)}")
+        page_id = self.page_service.create_from_scrapping(url, title, content)
+        print("id = ", page_id)
         for link in self.get_links(url, html):
             self.urls_to_crawl.add(link)
 
