@@ -4,7 +4,7 @@ import sqlalchemy.dialects.mysql as mysql
 import api.models.base as base
 
 
-class Page_word(base.Base):
+class PageWord(base.Base):
 
     __tablename__ = "pages_words"
     id = sa.Column(

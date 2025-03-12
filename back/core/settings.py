@@ -7,10 +7,13 @@ import pydantic_settings
 
 class DatabaseSettings(pydantic_settings.BaseSettings):
     DB_PORT: int = pydantic.Field(3306)
+    REDIS_PORT: int = pydantic.Field(6379)
     DB_NAME: str = pydantic.Field("db")
     DB_USER: str = pydantic.Field("user")
     DB_HOST: str = pydantic.Field("localhost")
     DB_PASSWORD: str = pydantic.Field("password")
+    REDIS_PORT: int = pydantic.Field(6379)
+
     DB_URL: Optional[str] = None
 
     @pydantic.field_validator("DB_URL", mode="before")

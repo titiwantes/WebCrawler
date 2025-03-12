@@ -14,17 +14,16 @@
 
 ## Installation
 
-1. **Clone le dépôt** :
-
-   ```bash
-   git clone https://github.com/ton_nom_utilisateur/FastAPI-SQL-Architecture.git
-   cd FastAPI-SQL-Architecture
-   ```
-
-2. **Installe les dépendances** :
+1. **Installe les dépendances** :
 
    ```bash
    poetry install
+   ```
+
+2. **Lance shell poetry**
+
+   ```bash
+   poetry shell
    ```
 
 3. **Démarre les services avec Docker Compose** :
@@ -35,7 +34,7 @@
 
 4. **Lance l'application** :
    ```bash
-   poetry run uvicorn api.api:app --reload
+   poetry run uvicorn api.main:app --reload
    ```
 
 ## Configuration
@@ -47,6 +46,7 @@ DB_NAME=nom_de_la_base_de_donnees
 DB_USER=utilisateur
 DB_PASSWORD=mot_de_passe
 DB_PORT=3306
+REDIS_PORT=6379
 ```
 
 ## Migrations de la base de données
