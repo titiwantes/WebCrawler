@@ -6,6 +6,7 @@ import api.crud.page_crud as page_crud
 import api.models.link as link_mdl
 import api.crud.link_crud as link_crud
 import api.schemas.page_schemas as page_sch
+import db.sessions as sessions
 
 
 class PageService:
@@ -24,3 +25,13 @@ class PageService:
         for link in links:
             link.from_page_id = page_id
             page_crud.LinkCrud.create(self.writer, link)
+
+    def create_from_scrapping(self, url: str, title: str, content: str) -> None:
+        # words = {word.lower().strip() for word in content.split()} if content else {}
+
+        with sessions.get_db_writer() as transaction_db:
+            page = page_mdl.Page(url=url, title=title, content=content)
+            page = page_crud.PageCrud.create(transaction_db, page)
+            transaction_db.commit()
+            transaction_db.refresh(page)
+            print(f"{page.id} : {page.url}")

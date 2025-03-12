@@ -4,6 +4,7 @@ import typing
 import sqlalchemy as sa
 import sqlalchemy.orm as sa_orm
 import core.settings
+import contextlib
 
 settings = core.settings.settings
 
@@ -38,6 +39,7 @@ def create_session(
     )
 
 
+@contextlib.contextmanager
 def get_db_writer(
     *, autocommit: bool = False, autoflush: bool = True, db_url: str = settings.DB_URL
 ) -> typing.Generator[sa_orm.Session, None, None]:
@@ -49,6 +51,12 @@ def get_db_writer(
     )()
     try:
         yield db
+        db.commit()
+
+    except Exception as e:
+        db.rollback()
+        raise e
+
     finally:
         db.close()
 
@@ -68,6 +76,7 @@ def get_db_reader(
         db.close()
 
 
+@contextlib.contextmanager
 def get_dbs(
     *,
     db_url: str = settings.DB_URL,
@@ -90,6 +99,12 @@ def get_dbs(
     )()
     try:
         yield reader, writer
+        writer.commit()
+
+    except Exception as e:
+        writer.rollback()
+        raise e
+
     finally:
         reader.close()
         writer.close()

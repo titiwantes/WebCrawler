@@ -17,6 +17,7 @@ class Page(base.Base):
     url = sa.Column(
         mysql.TEXT,
         nullable=False,
+        unique=True,
     )
 
     title = sa.Column(

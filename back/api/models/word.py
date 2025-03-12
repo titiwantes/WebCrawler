@@ -12,6 +12,7 @@ class Word(base.Base):
         primary_key=True,
         nullable=False,
         autoincrement=True,
+        unique=True,
     )
 
     word = sa.Column(mysql.VARCHAR(255), unique=True)

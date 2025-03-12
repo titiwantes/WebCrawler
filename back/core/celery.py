@@ -21,3 +21,5 @@ def crawl(url):
         return f"{crawl_crud.CrawlTaskCrud.create(writer, task).id}"
     except Exception as e:
         raise (e)
+    finally:
+        writer.close()
