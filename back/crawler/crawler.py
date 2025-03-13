@@ -14,6 +14,8 @@ logging.basicConfig(format="%(asctime)s %(levelname)s:%(message)s", level=loggin
 
 class Crawler:
     def __init__(self, dbs, task_id: int, urls: set[str] = set()):
+        if len(urls) == 0:
+            raise ValueError("No urls to crawl")
         self.urls_to_crawl: set[tuple[str, int | None]] = {(url, None) for url in urls}
         self.dbs = dbs
         self.page_service = page_srv.PageService(dbs=self.dbs)

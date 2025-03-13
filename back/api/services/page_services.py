@@ -36,7 +36,8 @@ class PageService:
     def add_link(self, from_page_id: str, to_page_id: int) -> None:
         link = link_mdl.Link(from_page_id=from_page_id, to_page_id=to_page_id)
         print(f"Link from: {from_page_id} to: {to_page_id}")
-        link_crud.LinkCrud.create(self.writer, link)
+        with sessions.get_db_writer() as transaction_db:
+            link_crud.LinkCrud.create(transaction_db, link)
 
     def add_links(self, links: list[link_mdl.Link], page_id: int) -> None:
         for link in links:
@@ -44,16 +45,21 @@ class PageService:
             page_crud.LinkCrud.create(self.writer, link)
 
     def add_incoming_link(self, page_url: str) -> None:
-        page = page_crud.PageCrud.get_by_url(self.reader, page_url)
-        if page:
-            page.incoming_links += 1
-            self.writer.add(page)
-            self.writer.commit()
+        with sessions.get_db_writer() as transaction_db:
+            stmt = sa.text(
+                """
+                UPDATE pages
+                SET incoming_links = incoming_links + 1
+                WHERE url = :url
+                """
+            ).bindparams(url=page_url)
+            transaction_db.execute(stmt)
+            transaction_db.commit()
 
     def create_from_scrapping(self, url: str, title: str, content: str) -> int:
         words = self.words_from_text(content)
         words_count = len(words)
-
+        page_id = None
         with sessions.get_db_writer() as transaction_db:
             page = page_mdl.Page(
                 url=url, title=title, content=content, words_count=words_count
@@ -75,4 +81,4 @@ class PageService:
             print(f"url: {page.url} | id: {page.id} | words: {len(words)}")
             page_id = page.id
             transaction_db.commit()
-            return page_id
+        return page_id
