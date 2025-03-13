@@ -17,15 +17,25 @@ class PageService:
         self.reader, self.writer = dbs
 
     @classmethod
-    def words_from_text(cls, text: str) -> set[str]:
-        return {word.lower() for word in re.findall(r"\b\w+\b", text)}
+    def words_from_text(cls, text: str) -> list[str]:
+        return [word.lower() for word in re.findall(r"\b\w+\b", text)]
+
+    def words_occurrences_from_words(self, words: list[str]) -> dict[str, int]:
+        words_occurrences = {}
+        for word in words:
+            if word in words_occurrences:
+                words_occurrences[word] += 1
+            else:
+                words_occurrences[word] = 1
+        return words_occurrences
 
     def create_page(self, page_data: page_sch.CreatePage) -> page_mdl.Page:
         new_page = page_mdl.Page(**page_data.dict())
         return page_crud.PageCrud.create(self.writer, new_page)
 
-    def add_link(self, link: str, page_id: int) -> None:
-        link.from_page_id = page_id
+    def add_link(self, from_page_id: str, to_page_id: int) -> None:
+        link = link_mdl.Link(from_page_id=from_page_id, to_page_id=to_page_id)
+        print(f"Link from: {from_page_id} to: {to_page_id}")
         link_crud.LinkCrud.create(self.writer, link)
 
     def add_links(self, links: list[link_mdl.Link], page_id: int) -> None:
@@ -33,16 +43,36 @@ class PageService:
             link.from_page_id = page_id
             page_crud.LinkCrud.create(self.writer, link)
 
+    def add_incoming_link(self, page_url: str) -> None:
+        page = page_crud.PageCrud.get_by_url(self.reader, page_url)
+        if page:
+            page.incoming_links += 1
+            self.writer.add(page)
+            self.writer.commit()
+
     def create_from_scrapping(self, url: str, title: str, content: str) -> int:
         words = self.words_from_text(content)
+        words_count = len(words)
+
         with sessions.get_db_writer() as transaction_db:
-            page = page_mdl.Page(url=url, title=title, content=content)
-
+            page = page_mdl.Page(
+                url=url, title=title, content=content, words_count=words_count
+            )
             page = page_crud.PageCrud.create(transaction_db, page)
-            for word in words:
-                word = word_crud.wordCrud.create(transaction_db, word)
-                page_word_crud.PageWordCrud.create(transaction_db, page.id, word.id)
 
+            words_occurrences = self.words_occurrences_from_words(words)
+
+            for word in words_occurrences.keys():
+                word_obj = word_crud.wordCrud.create(transaction_db, word)
+                page_word_crud.PageWordCrud.create(
+                    db=transaction_db,
+                    page_id=page.id,
+                    word_id=word_obj.id,
+                    occurence=words_occurrences[word],
+                    frequency=words_occurrences[word] / words_count,
+                )
+
+            print(f"url: {page.url} | id: {page.id} | words: {len(words)}")
             page_id = page.id
             transaction_db.commit()
             return page_id

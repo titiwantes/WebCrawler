@@ -14,6 +14,11 @@ class PageCrud:
         if existing_page:
             existing_page.title = page.title
             existing_page.content = page.content
+            incoming_links = page.incoming_links
+            words_count = page.words_count
+            last_crawled = page.last_crawled
+            db.flush()
+            db.refresh(existing_page)
             return existing_page
 
         db.add(page)

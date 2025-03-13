@@ -13,12 +13,13 @@ logging.basicConfig(format="%(asctime)s %(levelname)s:%(message)s", level=loggin
 
 
 class Crawler:
-    def __init__(self, dbs, urls=set()):
-        self.urls_to_crawl = urls
+    def __init__(self, dbs, task_id: int, urls: set[str] = set()):
+        self.urls_to_crawl: set[tuple[str, int | None]] = {(url, None) for url in urls}
         self.dbs = dbs
         self.page_service = page_srv.PageService(dbs=self.dbs)
         self.reader, self.writer = dbs
         self.visited_urls = set(page_crud.PageCrud.get_all_urls(self.reader))
+        self.task_id = task_id
 
     def download_url(self, url):
         return requests.get(url).text
@@ -35,13 +36,21 @@ class Crawler:
 
             yield path
 
-    def crawl(self, url):
+    def crawl(self, url_to_crawl):
+        url, from_ = url_to_crawl
+
         html = self.download_url(url)
         title, content = self.parse(html)
         page_id = self.page_service.create_from_scrapping(url, title, content)
-        print("id = ", page_id)
+
+        if from_:
+            self.page_service.add_link(from_page_id=from_, to_page_id=page_id)
+
         for link in self.get_links(url, html):
-            self.urls_to_crawl.add(link)
+            self.page_service.add_incoming_link(link)
+
+            if link not in self.visited_urls:
+                self.urls_to_crawl.add((link, page_id))
 
     def parse(self, html):
         soup = bs4.BeautifulSoup(html, "html.parser")
@@ -55,20 +64,16 @@ class Crawler:
 
     def run(self):
         while self.urls_to_crawl:
-            url = self.urls_to_crawl.pop()
+            url_to_crawl = self.urls_to_crawl.pop()
+            url, _ = url_to_crawl
+
             if url in self.visited_urls:
                 continue
             try:
-                self.crawl(url)
+                self.crawl(url_to_crawl)
 
             except Exception as e:
                 logging.error(f"Failed to crawl {url}: {e}")
 
             finally:
                 self.visited_urls.add(url)
-
-
-with db.get_dbs(db_url="mysql+mysqlconnector://user:password@localhost/db") as dbs:
-
-    crawler = Crawler(dbs, urls={"https://fr.wikipedia.org/wiki/World_Wide_Web"})
-    crawler.run()

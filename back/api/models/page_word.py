@@ -25,3 +25,17 @@ class PageWord(base.Base):
         sa.ForeignKey("words.id", ondelete="CASCADE"),
         nullable=False,
     )
+
+    occurence = sa.Column(
+        mysql.BIGINT(unsigned=True),
+        nullable=False,
+        default=1,
+        server_default="1",
+    )
+
+    frequency = sa.Column(
+        mysql.FLOAT(unsigned=True),
+        nullable=False,
+        default=0,
+        server_default="0",
+    )

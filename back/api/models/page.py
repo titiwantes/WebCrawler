@@ -17,7 +17,6 @@ class Page(base.Base):
     url = sa.Column(
         mysql.TEXT,
         nullable=False,
-        unique=True,
     )
 
     title = sa.Column(
@@ -27,6 +26,14 @@ class Page(base.Base):
     content = sa.Column(
         mysql.LONGTEXT,
         nullable=False,
+    )
+
+    incoming_links = sa.Column(
+        sa.Integer, nullable=False, default=0, server_default="0"
+    )
+
+    words_count = sa.Column(
+        mysql.BIGINT(unsigned=True), nullable=False, default=0, server_default="0"
     )
 
     last_crawled = sa.Column(

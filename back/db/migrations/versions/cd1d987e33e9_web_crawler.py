@@ -1,8 +1,8 @@
 """web crawler
 
-Revision ID: a1d16ed8c1e5
+Revision ID: cd1d987e33e9
 Revises: 
-Create Date: 2025-03-12 10:03:01.698734
+Create Date: 2025-03-13 12:13:26.098316
 
 """
 from typing import Sequence, Union
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 from sqlalchemy.dialects import mysql
 
 # revision identifiers, used by Alembic.
-revision: str = 'a1d16ed8c1e5'
+revision: str = 'cd1d987e33e9'
 down_revision: Union[str, None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -24,6 +24,7 @@ def upgrade() -> None:
     sa.Column('id', mysql.BIGINT(unsigned=True), autoincrement=True, nullable=False),
     sa.Column('start_time', sa.TIMESTAMP(), server_default=sa.text('now()'), nullable=False),
     sa.Column('end_time', sa.TIMESTAMP(), nullable=True),
+    sa.Column('seeds', sa.JSON(), nullable=False),
     sa.Column('error_message', sa.TEXT(), nullable=True),
     sa.PrimaryKeyConstraint('id')
     )
@@ -32,6 +33,8 @@ def upgrade() -> None:
     sa.Column('url', mysql.TEXT(), nullable=False),
     sa.Column('title', sa.TEXT(), nullable=True),
     sa.Column('content', mysql.LONGTEXT(), nullable=False),
+    sa.Column('incoming_links', sa.Integer(), server_default='0', nullable=False),
+    sa.Column('words_count', mysql.BIGINT(unsigned=True), server_default='0', nullable=False),
     sa.Column('last_crawled', sa.TIMESTAMP(), server_default=sa.text('now()'), nullable=False),
     sa.PrimaryKeyConstraint('id')
     )
@@ -39,6 +42,7 @@ def upgrade() -> None:
     sa.Column('id', mysql.BIGINT(unsigned=True), autoincrement=True, nullable=False),
     sa.Column('word', mysql.VARCHAR(length=255), nullable=True),
     sa.PrimaryKeyConstraint('id'),
+    sa.UniqueConstraint('id'),
     sa.UniqueConstraint('word')
     )
     op.create_table('links',
@@ -53,6 +57,8 @@ def upgrade() -> None:
     sa.Column('id', mysql.BIGINT(unsigned=True), autoincrement=True, nullable=False),
     sa.Column('page_id', mysql.BIGINT(unsigned=True), nullable=False),
     sa.Column('word_id', mysql.BIGINT(unsigned=True), nullable=False),
+    sa.Column('occurence', mysql.BIGINT(unsigned=True), server_default='1', nullable=False),
+    sa.Column('frequency', mysql.FLOAT(unsigned=True), server_default='0', nullable=False),
     sa.ForeignKeyConstraint(['page_id'], ['pages.id'], ondelete='CASCADE'),
     sa.ForeignKeyConstraint(['word_id'], ['words.id'], ondelete='CASCADE'),
     sa.PrimaryKeyConstraint('id')
